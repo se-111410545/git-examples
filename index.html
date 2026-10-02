@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Git 教學索引</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  h1 {
+    font-size: 3em;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    color: #94a3b8;
+    font-size: 1.1em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 25px;
+    text-decoration: none;
+    color: #e2e8f0;
+    transition: all 0.3s;
+    display: block;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    border-color: #60a5fa;
+    box-shadow: 0 10px 30px rgba(96, 165, 250, 0.2);
+  }
+  .card-icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+  }
+  .card h2 {
+    color: #60a5fa;
+    margin-bottom: 10px;
+    font-size: 1.3em;
+  }
+  .card p {
+    color: #94a3b8;
+    font-size: 0.95em;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  .tag {
+    display: inline-block;
+    background: rgba(96, 165, 250, 0.15);
+    color: #93c5fd;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-right: 6px;
+    margin-top: 6px;
+  }
+  footer {
+    text-align: center;
+    margin-top: 50px;
+    color: #64748b;
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>📚 Git 教學索引</h1>
+    <p class="subtitle">點擊進入各主題的詳細教學</p>
+  </header>
+
+  <div class="grid">
+
+    <a href="gitBranch.html" class="card">
+      <div class="card-icon">🌿</div>
+      <h2>Git Branch 使用教學</h2>
+      <p>介紹 branch 指令、實際運用、命名規範與常用場景。</p>
+      <div>
+        <span class="tag">基本</span>
+        <span class="tag">branch</span>
+      </div>
+    </a>
+
+    <a href="gitBranchFlow.html" class="card">
+      <div class="card-icon">🔄</div>
+      <h2>Git Branch 流程複習</h2>
+      <p>用流程圖解釋 branch、push、merge 等步驟。</p>
+      <div>
+        <span class="tag">圖解</span>
+        <span class="tag">流程</span>
+      </div>
+    </a>
+
+    <a href="gitCompleteTutorial.html" class="card">
+      <div class="card-icon">📖</div>
+      <h2>Git 完整協作流程教學</h2>
+      <p>從 Fork 到 Merge 的完整流程，含每步的「為什麼」。</p>
+      <div>
+        <span class="tag">完整</span>
+        <span class="tag">協作</span>
+      </div>
+    </a>
+
+    <a href="forkTutorial.html" class="card">
+      <div class="card-icon">🔱</div>
+      <h2>Git Fork 完整教學</h2>
+      <p>理解 Fork 意義、上下游關係 (origin / upstream) 與完整實作流程。</p>
+      <div>
+        <span class="tag">Fork</span>
+        <span class="tag">upstream</span>
+      </div>
+    </a>
+
+    <a href="gitBranch.md" class="card">
+      <div class="card-icon">📄</div>
+      <h2>Git Branch Markdown 筆記</h2>
+      <p>純文字版的 Git Branch 教學，方便快速查指令。</p>
+      <div>
+        <span class="tag">Markdown</span>
+        <span class="tag">指令</span>
+      </div>
+    </a>
+
+    <a href="forkExercise.md" class="card">
+      <div class="card-icon">✏️</div>
+      <h2>Fork 練習紀錄</h2>
+      <p>本次 Fork 練習的步驟紀錄與心得。</p>
+      <div>
+        <span class="tag">紀錄</span>
+        <span class="tag">練習</span>
+      </div>
+    </a>
+
+  </div>
+
+  <footer>
+    <p>Git 教學系列 · 透過實作練習協作流程</p>
+  </footer>
+
+</div>
+</body>
+</html>
