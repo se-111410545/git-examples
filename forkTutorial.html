@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Git Fork 完整教學</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    line-height: 1.8;
+    padding: 30px 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    margin-bottom: 40px;
+    font-size: 1.05em;
+  }
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 15px;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 12px;
+  }
+  .nav a {
+    color: #60a5fa;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: rgba(96, 165, 250, 0.1);
+    transition: all 0.2s;
+    font-size: 0.95em;
+  }
+  .nav a:hover { background: rgba(96, 165, 250, 0.3); }
+  section {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 25px;
+  }
+  section h2 {
+    color: #f1f5f9;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #334155;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .step {
+    background: rgba(30, 41, 59, 0.8);
+    border-left: 4px solid #60a5fa;
+    border-radius: 10px;
+    padding: 20px 25px;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+  }
+  .step:hover { transform: translateX(5px); }
+  .step h3 {
+    color: #60a5fa;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.15em;
+  }
+  .num {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    color: #0f172a;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.95em;
+    flex-shrink: 0;
+  }
+  pre {
+    background: #020617;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    border: 1px solid #1e293b;
+  }
+  pre code {
+    color: #e2e8f0;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.9em;
+  }
+  code {
+    background: #020617;
+    color: #f472b6;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: "Consolas", monospace;
+    font-size: 0.9em;
+  }
+  .why {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+    border-left: 4px solid #a78bfa;
+    padding: 12px 15px;
+    margin: 12px 0;
+    border-radius: 8px;
+  }
+  .why strong { color: #c4b5fd; }
+  svg { display: block; margin: 20px auto; max-width: 100%; height: auto; }
+
+  .key-points {
+    background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 30px;
+  }
+  .key-points h2 { color: white; border: none; margin-bottom: 15px; }
+  .key-points li { margin-left: 25px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Git Fork 完整教學</h1>
+  <p class="subtitle">理解 Fork 的意義、上下游關係、與完整實作流程</p>
+
+  <!-- 導覽列 -->
+  <nav class="nav">
+    <a href="#what">什麼是 Fork</a>
+    <a href="#why">為什麼要 Fork</a>
+    <a href="#upstream">上下游</a>
+    <a href="#flow">完整流程</a>
+    <a href="#sync">同步 upstream</a>
+    <a href="#pr">發 PR</a>
+    <a href="#common">常見問題</a>
+  </nav>
+
+  <!-- ========== 什麼是 Fork ========== -->
+  <section id="what">
+    <h2>🔱 什麼是 Fork？</h2>
+
+    <p style="font-size: 1.05em; margin-bottom: 15px;">
+      <strong>Fork</strong> 就是「把別人的 repo 完整複製一份到自己的帳號下」。
+      複製後的 repo 是你的，你可以自由修改、push，不會影響原作者的 repo。
+    </p>
+
+    <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="30" y="60" width="180" height="80" rx="10" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="120" y="95" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="14">原作者的 repo</text>
+      <text x="120" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">(沒有 push 權限)</text>
+
+      <line x1="350" y1="100" x2="420" y2="100" stroke="#f472b6" stroke-width="3" marker-end="url(#arrow-fork)"/>
+      <text x="385" y="90" text-anchor="middle" fill="#f472b6" font-size="13" font-weight="bold">Fork</text>
+
+      <rect x="420" y="60" width="160" height="80" rx="10" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+      <text x="500" y="95" text-anchor="middle" fill="#a78bfa" font-weight="bold" font-size="14">你的 fork</text>
+      <text x="500" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">(完整 push 權限)</text>
+
+      <defs>
+        <marker id="arrow-fork" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L9,3 z" fill="#f472b6"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="why">
+      <strong>💡 簡單比喻：</strong><br>
+      Fork 就像「影印別人的書」，影印本是你的，你可以在上面寫筆記、畫螢光筆，
+      但不會影響到原版的書。如果你的筆記很好，想讓原作者收進新版本，
+      就可以「發 Pull Request」請求原作者把你的改動合併回去。
+    </div>
+  </section>
+
+  <!-- ========== 為什麼要 Fork ========== -->
+  <section id="why">
+    <h2>🤔 為什麼需要 Fork？</h2>
+
+    <div class="step">
+      <h3><span class="num">1</span>你沒有 push 權限</h3>
+      <p>在 GitHub 上，除非你是 collaborator，否則你無法直接 push 到別人的 repo。</p>
+      <p>Fork 後你擁有自己那份的完整權限，可以自由修改。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>保護原作者的程式碼</h3>
+      <p>如果人人都能改 main，那專案會馬上壞掉。Fork + PR 確保所有 merge 都經過審查。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>模擬真實開源貢獻</h3>
+      <p>外面的開源專案（Linux、React、Vue...）都是用 Fork + PR 流程運作。
+      學會這個你就會參與任何開源專案了。</p>
+    </div>
+  </section>
+
+  <!-- ========== Upstream ========== -->
+  <section id="upstream">
+    <h2>🔗 上下游關係（origin vs upstream）</h2>
+
+    <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- upstream -->
+      <rect x="30" y="60" width="180" height="100" rx="10" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="120" y="95" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="14">原作者 repo</text>
+      <text x="120" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">upstream</text>
+      <text x="120" y="135" text-anchor="middle" fill="#94a3b8" font-size="11">se-111410545/...</text>
+
+      <!-- 雙向箭頭 -->
+      <line x1="220" y1="80" x2="490" y2="80" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-up)"/>
+      <text x="355" y="70" text-anchor="middle" fill="#10b981" font-size="11">同步</text>
+
+      <line x1="490" y1="140" x2="220" y2="140" stroke="#f472b6" stroke-width="2" marker-end="url(#arrow-pr)"/>
+      <text x="355" y="160" text-anchor="middle" fill="#f472b6" font-size="11">發 PR</text>
+
+      <!-- origin -->
+      <rect x="490" y="60" width="180" height="100" rx="10" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+      <text x="580" y="95" text-anchor="middle" fill="#a78bfa" font-weight="bold" font-size="14">你的 fork</text>
+      <text x="580" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">origin</text>
+      <text x="580" y="135" text-anchor="middle" fill="#94a3b8" font-size="11">NaroFeng/...</text>
+
+      <defs>
+        <marker id="arrow-up" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#10b981"/>
+        </marker>
+        <marker id="arrow-pr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#f472b6"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>origin（你的 fork）</h3>
+      <p>你 <code>git push</code> 推送的地方。Clone 時自動設定的預設遠端。</p>
+      <pre><code>git clone git@github.com:NaroFeng/git-examples.git
+# 自動設定 origin = NaroFeng/git-examples</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>upstream（原作者的 repo）</h3>
+      <p>原作者的 repo，用來「同步最新改動」跟「發 PR 回去」。需要手動加入。</p>
+      <pre><code>git remote add upstream git@github.com:se-111410545/git-examples.git
+git remote -v
+# origin    NaroFeng/git-examples.git (fetch)
+# upstream  se-111410545/git-examples.git (fetch)</code></pre>
+    </div>
+
+    <div class="why">
+      <strong>💡 為什麼要分兩個？</strong><br>
+      <code>origin</code> = 你寫程式的地方（隨便改）<br>
+      <code>upstream</code> = 原作者的參考（只能 fetch 不能 push）<br>
+      分開管理才不會把測試 commit 推到原作者那邊。
+    </div>
+  </section>
+
+  <!-- ========== 完整流程 ========== -->
+  <section id="flow">
+    <h2>📋 完整流程</h2>
+
+    <div class="step">
+      <h3><span class="num">1</span>Fork（網頁操作）</h3>
+      <p>到原作者 repo，按右上角 Fork。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>Clone 你的 fork</h3>
+      <pre><code>git clone git@github.com:NaroFeng/git-examples.git my-fork
+cd my-fork</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>設定 upstream</h3>
+      <pre><code>git remote add upstream git@github.com:se-111410545/git-examples.git</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">4</span>從 upstream 開新分支</h3>
+      <pre><code>git fetch upstream
+git checkout -b feat/my-change upstream/main</code></pre>
+      <div class="why">
+        <strong>💡 為什麼從 upstream 開？</strong><br>
+        如果從你的 main 開分支，會夾帶你 main 上多餘的 commit 進 PR。
+        從 <code>upstream/main</code> 開分支，PR 才會乾淨。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">5</span>修改、commit、push</h3>
+      <pre><code># 修改檔案
+git add .
+git commit -m "說明做了什麼"
+git push origin feat/my-change</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">6</span>發 Pull Request</h3>
+      <p>到 GitHub 你的 fork 頁面 → Compare & pull request → base 選 upstream，compare 選 feat/my-change。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">7</span>等待審查並 Merge</h3>
+      <p>原作者（或自己另一個帳號）按 Merge pull request 完成合併。</p>
+    </div>
+  </section>
+
+  <!-- ========== 同步 upstream ========== -->
+  <section id="sync">
+    <h2>🔄 同步 Upstream 最新改動</h2>
+
+    <p>當原作者更新了 repo，你想抓回最新版本：</p>
+
+    <div class="step">
+      <h3><span class="num">1</span>抓取 upstream 最新</h3>
+      <pre><code>git fetch upstream</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>切回 main 並合併</h3>
+      <pre><code>git checkout main
+git merge upstream/main</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>推回你的 fork</h3>
+      <pre><code>git push origin main</code></pre>
+    </div>
+
+    <div class="why">
+      <strong>💡 為什麼要同步？</strong><br>
+      如果你 fork 後原作者又更新了，你的 PR 會「落後」於原作者的 main，GitHub 會警告。
+      先同步再發 PR，reviewer 才看到完整的最新狀態。
+    </div>
+  </section>
+
+  <!-- ========== 發 PR ========== -->
+  <section id="pr">
+    <h2>🔀 發 Pull Request 詳細步驟</h2>
+
+    <div class="step">
+      <h3><span class="num">1</span>推送分支後到 GitHub</h3>
+      <p>push 完成後到 <code>https://github.com/NaroFeng/git-examples</code>，GitHub 通常會顯示提示橫幅。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>點 Compare & pull request</h3>
+      <p>或手動切換到分支，按上方 Pull Request → New pull request。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>設定 base 與 compare</h3>
+      <ul style="padding-left: 25px;">
+        <li><strong>base repository</strong>：原作者的 repo + main（合併進去的地方）</li>
+        <li><strong>compare branch</strong>：你的 fork + feat/my-change（你的改動）</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">4</span>填寫 PR 內容</h3>
+      <pre><code>標題：簡短描述
+內容：
+- 為什麼改
+- 改了什麼
+- 如何測試
+- 相關 issue 編號（如果有）</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">5</span>送出</h3>
+      <p>按 Create pull request。完成後到原作者 repo 頁面會看到你的 PR。</p>
+    </div>
+  </section>
+
+  <!-- ========== 常見問題 ========== -->
+  <section id="common">
+    <h2>❓ 常見問題</h2>
+
+    <div class="step">
+      <h3>Q: 為什麼 PR 顯示「out-of-date」？</h3>
+      <p>你的 fork 缺少原作者最新的 commit。先 sync upstream 後再推一次分支即可。</p>
+      <pre><code>git fetch upstream
+git checkout feat/my-change
+git rebase upstream/main
+git push -f origin feat/my-change</code></pre>
+    </div>
+
+    <div class="step">
+      <h3>Q: Fork 跟 Clone 有什麼差別？</h3>
+      <p><strong>Clone</strong> 是把 repo 複製到本地（唯讀就沒有 push 權限的 repo 也行）。</p>
+      <p><strong>Fork</strong> 是把 repo 複製到自己帳號下（讓你獲得 push 權限）。</p>
+    </div>
+
+    <div class="step">
+      <h3>Q: Fork 會不會一直跟著原作者更新？</h3>
+      <p>不會自動。要手動 <code>git fetch upstream</code> + <code>git merge upstream/main</code>。</p>
+    </div>
+
+    <div class="step">
+      <h3>Q: 發 PR 後還能繼續 commit 嗎？</h3>
+      <p>可以！繼續 commit + push 到同一條分支，PR 會自動更新。</p>
+      <pre><code>git commit -m "補充說明"
+git push origin feat/my-change
+# PR 自動看到新 commit</code></pre>
+    </div>
+
+    <div class="step">
+      <h3>Q: 想撤回 PR 怎麼辦？</h3>
+      <p>到 PR 頁面按 Close pull request 即可。分支跟 commit 都還在，只是 PR 關閉了。</p>
+    </div>
+  </section>
+
+  <!-- ========== 總結 ========== -->
+  <section class="key-points" id="summary">
+    <h2>🎯 總結</h2>
+
+    <p style="margin-bottom: 15px;">Fork 的精神是：</p>
+
+    <ul>
+      <li><strong>🛡️ 隔離實驗空間</strong>: 隨便改、不怕影響原作者</li>
+      <li><strong>🤝 透過 PR 合作</strong>: 改完用 PR 請求合併，不是偷偷改 main</li>
+      <li><strong>🔄 持續同步</strong>: 透過 upstream 隨時抓原作者更新</li>
+      <li><strong>👥 模擬多人協作</strong>: 每個人 fork 一份，互不干擾</li>
+    </ul>
+
+    <p style="margin-top: 20px;"><strong>一句話濃縮：</strong></p>
+    <p style="font-size: 1.1em; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 10px;">
+      Fork = 複製別人的 repo 到自己帳號。<br>
+      Clone 自己 fork 來改 → 從 upstream 開新分支 → 改完 push → 發 PR 回去。<br>
+      這就是開源世界運作的方式。
+    </p>
+  </section>
+
+</div>
+</body>
+</html>
