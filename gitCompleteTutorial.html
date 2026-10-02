@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Git Fork + Branch + PR 完整教學</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    line-height: 1.8;
+    padding: 30px 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    margin-bottom: 40px;
+    font-size: 1.05em;
+  }
+
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 15px;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 12px;
+  }
+  .nav a {
+    color: #60a5fa;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: rgba(96, 165, 250, 0.1);
+    transition: all 0.2s;
+    font-size: 0.95em;
+  }
+  .nav a:hover { background: rgba(96, 165, 250, 0.3); }
+
+  section {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 25px;
+  }
+  section h2 {
+    color: #f1f5f9;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #334155;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .step {
+    background: rgba(30, 41, 59, 0.8);
+    border-left: 4px solid #60a5fa;
+    border-radius: 10px;
+    padding: 20px 25px;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+  }
+  .step:hover { transform: translateX(5px); }
+  .step h3 {
+    color: #60a5fa;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.15em;
+  }
+  .num {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    color: #0f172a;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.95em;
+    flex-shrink: 0;
+  }
+  pre {
+    background: #020617;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    border: 1px solid #1e293b;
+  }
+  pre code {
+    color: #e2e8f0;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.9em;
+  }
+  code {
+    background: #020617;
+    color: #f472b6;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: "Consolas", monospace;
+    font-size: 0.9em;
+  }
+  .why {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+    border-left: 4px solid #a78bfa;
+    padding: 12px 15px;
+    margin: 12px 0;
+    border-radius: 8px;
+  }
+  .why strong { color: #c4b5fd; }
+
+  svg { display: block; margin: 20px auto; max-width: 100%; height: auto; }
+
+  .concept {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .card {
+    background: rgba(30, 41, 59, 0.8);
+    padding: 20px;
+    border-radius: 12px;
+    border-top: 4px solid;
+  }
+  .card h4 { margin-bottom: 8px; font-size: 1.1em; }
+  .card.c1 { border-color: #60a5fa; } .card.c1 h4 { color: #93c5fd; }
+  .card.c2 { border-color: #a78bfa; } .card.c2 h4 { color: #c4b5fd; }
+  .card.c3 { border-color: #f472b6; } .card.c3 h4 { color: #f9a8d4; }
+  .card.c4 { border-color: #10b981; } .card.c4 h4 { color: #6ee7b7; }
+
+  .key-points {
+    background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 30px;
+  }
+  .key-points h2 { color: white; border: none; margin-bottom: 15px; }
+  .key-points li { margin-left: 25px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Git 完整協作流程教學</h1>
+  <p class="subtitle">Fork → Clone → Branch → Commit → Push → Pull Request → Merge</p>
+
+  <!-- 導覽列 -->
+  <nav class="nav">
+    <a href="#concept">基本概念</a>
+    <a href="#fork">Fork</a>
+    <a href="#clone">Clone</a>
+    <a href="#branch">Branch</a>
+    <a href="#commit">Commit</a>
+    <a href="#push">Push</a>
+    <a href="#pr">PR</a>
+    <a href="#merge">Merge</a>
+    <a href="#summary">總結</a>
+  </nav>
+
+  <!-- ========== 概念 ========== -->
+  <section id="concept">
+    <h2>📚 基本概念</h2>
+
+    <div class="concept">
+      <div class="card c1">
+        <h4>🔱 Fork</h4>
+        <p>把別人的 repo 完整複製一份到自己的帳號下，變成你自己的 repo。</p>
+      </div>
+      <div class="card c2">
+        <h4>🌿 Branch</h4>
+        <p>從主線拉出一條獨立支線，在支線上改東西不會影響主線。</p>
+      </div>
+      <div class="card c3">
+        <h4>💾 Commit</h4>
+        <p>把改動儲存成一個版本，每個 commit 都是一個可回溯的節點。</p>
+      </div>
+      <div class="card c4">
+        <h4>🔀 Pull Request</h4>
+        <p>把改好的分支請求合併到主線，並讓別人 review 你的程式碼。</p>
+      </div>
+    </div>
+
+    <div class="why">
+      <strong>💡 為什麼需要這套流程？</strong><br>
+      模擬真實的<strong>開源協作</strong>。你不能隨便 push 到別人的 repo，
+      必須 fork 一份到自己那邊改，再發 PR 請求對方審核。
+      這個流程保護了主線的<strong>穩定性</strong>，也確保<strong>程式碼品質</strong>。
+    </div>
+  </section>
+
+  <!-- ========== Fork ========== -->
+  <section id="fork">
+    <h2>🔱 步驟 1：Fork（網頁操作）</h2>
+
+    <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- 上游 repo -->
+      <rect x="30" y="60" width="160" height="80" rx="10" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="110" y="95" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="14">老師的 repo</text>
+      <text x="110" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">upstream</text>
+
+      <!-- 箭頭 -->
+      <line x1="330" y1="100" x2="420" y2="100" stroke="#f472b6" stroke-width="3" marker-end="url(#arrow-pink)"/>
+      <text x="375" y="90" text-anchor="middle" fill="#f472b6" font-size="13" font-weight="bold">Fork</text>
+
+      <!-- Fork 出來的 repo -->
+      <rect x="420" y="60" width="160" height="80" rx="10" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+      <text x="500" y="95" text-anchor="middle" fill="#a78bfa" font-weight="bold" font-size="14">你的 fork</text>
+      <text x="500" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">origin</text>
+
+      <defs>
+        <marker id="arrow-pink" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L9,3 z" fill="#f472b6"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>到老師的 repo 頁面</h3>
+      <p>到 <code>https://github.com/se-111410545/git-examples</code></p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>點右上角的 Fork 按鈕</h3>
+      <p>GitHub 會問你要 fork 到哪裡，選擇你的帳號（或 organization）。</p>
+      <div class="why">
+        <strong>💡 為什麼？</strong><br>
+        Fork 後你擁有這個 repo，可以自由修改、push。否則你對老師的 repo 只有唯讀權限。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>確認 Fork 成功</h3>
+      <p>檢查網址列，應該變成 <code>https://github.com/你的帳號/git-examples</code></p>
+    </div>
+  </section>
+
+  <!-- ========== Clone ========== -->
+  <section id="clone">
+    <h2>📥 步驟 2：Clone（複製到本地）</h2>
+
+    <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+      <!-- 遠端 repo -->
+      <rect x="30" y="50" width="160" height="80" rx="10" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+      <text x="110" y="85" text-anchor="middle" fill="#a78bfa" font-weight="bold" font-size="14">你的 fork</text>
+      <text x="110" y="105" text-anchor="middle" fill="#94a3b8" font-size="11">(GitHub)</text>
+
+      <!-- 箭頭 -->
+      <line x1="320" y1="90" x2="410" y2="90" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)"/>
+      <text x="365" y="80" text-anchor="middle" fill="#10b981" font-size="13" font-weight="bold">git clone</text>
+
+      <!-- 本地資料夾 -->
+      <rect x="410" y="50" width="160" height="80" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+      <text x="490" y="85" text-anchor="middle" fill="#10b981" font-weight="bold" font-size="14">本地資料夾</text>
+      <text x="490" y="105" text-anchor="middle" fill="#94a3b8" font-size="11">git-examples/</text>
+
+      <defs>
+        <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L9,3 z" fill="#10b981"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>複製你 fork 的 repo</h3>
+      <pre><code>git clone git@github.com:你的帳號/git-examples.git
+cd git-examples</code></pre>
+      <div class="why">
+        <strong>💡 為什麼 clone 自己 fork 的，不是老師的？</strong><br>
+        你有老師 repo 的 push 權限，但你有<strong>自己 fork 的</strong> push 權限。
+        Clone 哪個就代表你是用哪個身份。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>設定 upstream（選配但建議）</h3>
+      <pre><code>git remote add upstream git@github.com:se-111410545/git-examples.git
+git remote -v</code></pre>
+      <div class="why">
+        <strong>💡 為什麼？</strong><br>
+        <code>origin</code> = 你的 fork（你推送的地方）<br>
+        <code>upstream</code> = 老師的原始 repo（同步用的參考）
+        之後要抓老師的最新改動：<code>git fetch upstream</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Branch ========== -->
+  <section id="branch">
+    <h2>🌿 步驟 3：Branch（開分支）</h2>
+
+    <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- main 主線 -->
+      <line x1="50" y1="160" x2="650" y2="160" stroke="#10b981" stroke-width="3"/>
+      <circle cx="100" cy="160" r="8" fill="#10b981"/>
+      <circle cx="200" cy="160" r="8" fill="#10b981"/>
+      <circle cx="600" cy="160" r="8" fill="#10b981"/>
+      <text x="60" y="150" fill="#10b981" font-weight="bold" font-size="13">main</text>
+
+      <!-- feature 分支 -->
+      <line x1="200" y1="160" x2="550" y2="80" stroke="#60a5fa" stroke-width="3"/>
+      <circle cx="300" cy="130" r="8" fill="#60a5fa"/>
+      <circle cx="400" cy="105" r="8" fill="#60a5fa"/>
+      <circle cx="500" cy="90" r="8" fill="#60a5fa"/>
+      <circle cx="550" cy="80" r="8" fill="#60a5fa"/>
+      <text x="280" y="110" fill="#60a5fa" font-weight="bold" font-size="13">feature</text>
+
+      <!-- HEAD 標示 -->
+      <text x="560" y="70" fill="#f472b6" font-weight="bold" font-size="14">HEAD</text>
+      <line x1="555" y1="75" x2="555" y2="80" stroke="#f472b6" stroke-width="2"/>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>確認目前在 main</h3>
+      <pre><code>git branch
+git pull</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>建立並切換到新分支</h3>
+      <pre><code>git checkout -b feature/my-work</code></pre>
+      <div class="why">
+        <strong>💡 為什麼要開分支？</strong><br>
+        不直接在 main 改，才不會：
+          1. 污染主分支，害到任何人都能跑
+          2. 改到一半壞掉，影響別人
+          3. 沒法同時辦不同功能<br>
+        分支就像<strong>實驗室</strong>，寫壞了刪掉就好，main 永遠穩定。
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Commit ========== -->
+  <section id="commit">
+    <h2>💾 步驟 4：Commit（提交改動）</h2>
+
+    <div class="step">
+      <h3><span class="num">1</span>修改檔案</h3>
+      <p>在本地新增、修改、刪除檔案。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>查看改動</h3>
+      <pre><code>git status         # 看改了哪些檔案
+git diff           # 看具體改了什麼</code></pre>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>加入暫存區</h3>
+      <pre><code>git add gitBranch.md
+git add .          # 全部加入（慎用）</code></pre>
+      <div class="why">
+        <strong>💡 為什麼要 add？</strong><br>
+        <code>add</code> 決定這次 commit 要包含哪些檔案。
+        避免不小心 commit 進<strong>測試檔、私人設定、密碼檔</strong>。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">4</span>建立 commit</h3>
+      <pre><code>git commit -m "Add gitBranch.md - Git Branch 教學"</code></pre>
+      <div class="why">
+        <strong>💡 為什麼要有 commit？</strong><br>
+        每個 commit 是一個<strong>可回溯的歷史節點</strong>。
+        未來可以 checkout 到任意 commit、看出誰改了什麼、出問題可以 revert。
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Push ========== -->
+  <section id="push">
+    <h2>🚀 步驟 5：Push（推送到遠端）</h2>
+
+    <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+      <!-- 本地 -->
+      <rect x="30" y="50" width="160" height="80" rx="10" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="110" y="85" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="14">本地</text>
+      <text x="110" y="105" text-anchor="middle" fill="#94a3b8" font-size="11">feature/my-work</text>
+
+      <!-- 箭頭 -->
+      <line x1="210" y1="90" x2="390" y2="90" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-push)"/>
+      <text x="300" y="80" text-anchor="middle" fill="#10b981" font-size="13" font-weight="bold">git push</text>
+
+      <!-- 遠端 -->
+      <rect x="390" y="50" width="180" height="80" rx="10" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+      <text x="480" y="85" text-anchor="middle" fill="#a78bfa" font-weight="bold" font-size="14">你的 GitHub</text>
+      <text x="480" y="105" text-anchor="middle" fill="#94a3b8" font-size="11">feature/my-work</text>
+
+      <defs>
+        <marker id="arrow-push" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L9,3 z" fill="#10b981"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>第一次推送</h3>
+      <pre><code>git push -u origin feature/my-work</code></pre>
+      <div class="why">
+        <strong>💡 <code>-u</code> 是什麼？</strong><br>
+        <code>-u</code> = <code>--set-upstream</code>，設定上游關聯。
+        設定後只需打 <code>git push</code> 就會自動推到正確分支。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>之後推送</h3>
+      <pre><code>git push</code></pre>
+      <p>已經設定 upstream 後就只需打 <code>git push</code>。</p>
+    </div>
+  </section>
+
+  <!-- ========== PR ========== -->
+  <section id="pr">
+    <h2>🔀 步驟 6：Pull Request（發 PR）</h2>
+
+    <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg">
+      <!-- feature 分支 -->
+      <rect x="30" y="40" width="180" height="60" rx="8" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="120" y="68" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="13">feature/my-work</text>
+      <text x="120" y="86" text-anchor="middle" fill="#94a3b8" font-size="11">(你的分支)</text>
+
+      <!-- PR -->
+      <rect x="270" y="60" width="160" height="60" rx="8" fill="#1e293b" stroke="#f472b6" stroke-width="2"/>
+      <text x="350" y="88" text-anchor="middle" fill="#f472b6" font-weight="bold" font-size="13">Pull Request</text>
+      <text x="350" y="106" text-anchor="middle" fill="#94a3b8" font-size="11">Code Review</text>
+
+      <!-- main -->
+      <rect x="490" y="40" width="180" height="60" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+      <text x="580" y="68" text-anchor="middle" fill="#10b981" font-weight="bold" font-size="13">main</text>
+      <text x="580" y="86" text-anchor="middle" fill="#94a3b8" font-size="11">(主線)</text>
+
+      <!-- arrows -->
+      <line x1="210" y1="70" x2="270" y2="90" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow-pr1)"/>
+      <line x1="430" y1="90" x2="490" y2="70" stroke="#f472b6" stroke-width="2" marker-end="url(#arrow-pr2)"/>
+
+      <defs>
+        <marker id="arrow-pr1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+        </marker>
+        <marker id="arrow-pr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#f472b6"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>到 GitHub 你的 repo 頁面</h3>
+      <p>推送完成後，GitHub 通常會顯示一個黃色橫幅：<strong>"Compare & pull request"</strong>，直接點下去。</p>
+      <p>或手動切換到 feature 分支，按上方 <strong>Pull request</strong> → <strong>New pull request</strong>。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>設定 PR 方向</h3>
+      <ul style="padding-left: 25px; margin: 10px 0;">
+        <li><strong>base repository</strong>（合併進）：選老師（或目標）的 repo + main</li>
+        <li><strong>compare branch</strong>（你的改動）：選你的 feature/my-work</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>填寫 PR 內容並送出</h3>
+      <pre><code>標題：簡單一句話描述
+內容：說明改了什麼、為什麼要改、怎麼測試</code></pre>
+      <div class="why">
+        <strong>💡 為什麼要 PR？</strong><br>
+        1. <strong>Code Review</strong>：讓別人看過你的程式碼，減少 bug<br>
+        2. <strong>紀錄</strong>：留下為什麼這樣改的脈絡<br>
+        3. <strong>討論</strong>：可以針對程式碼留言、提問、修改<br>
+        4. <strong>保護主線</strong>：main 只能收經過審查的程式碼
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Merge ========== -->
+  <section id="merge">
+    <h2>✅ 步驟 7：Merge（合併）</h2>
+
+    <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- 合併前 -->
+      <line x1="50" y1="80" x2="250" y2="80" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
+      <line x1="120" y1="80" x2="220" y2="140" stroke="#60a5fa" stroke-width="2" stroke-dasharray="5,5"/>
+      <text x="30" y="70" fill="#94a3b8" font-size="11">合併前</text>
+
+      <!-- 合併後 -->
+      <line x1="400" y1="80" x2="650" y2="80" stroke="#10b981" stroke-width="3"/>
+      <line x1="500" y1="80" x2="620" y2="140" stroke="#60a5fa" stroke-width="3"/>
+      <circle cx="620" cy="140" r="8" fill="#60a5fa"/>
+      <text x="400" y="70" fill="#10b981" font-size="11">合併後</text>
+
+      <!-- 箭頭 -->
+      <line x1="280" y1="110" x2="380" y2="110" stroke="#a78bfa" stroke-width="3" marker-end="url(#arrow-merge)"/>
+      <text x="330" y="100" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="bold">Merge</text>
+
+      <defs>
+        <marker id="arrow-merge" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L9,3 z" fill="#a78bfa"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="step">
+      <h3><span class="num">1</span>審查 PR</h3>
+      <p>PR 發出後，目標 repo 的擁有者（這裡是老師，或你自己另一個帳號）會收到通知。</p>
+      <p>審查者可以：</p>
+      <ul style="padding-left: 25px; margin: 10px 0;">
+        <li>看程式碼改動（diff）</li>
+        <li>留言、提問、要求修改</li>
+        <li>通過審查 → 按 <strong>Merge pull request</strong></li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2</span>按下 Merge</h3>
+      <p>合併方式有三種：</p>
+      <ul style="padding-left: 25px; margin: 10px 0;">
+        <li><strong>Create a merge commit</strong>（預設）：保留所有 commit 歷史</li>
+        <li><strong>Squash and merge</strong>：把多個 commit 合併成一個</li>
+        <li><strong>Rebase and merge</strong>：線性歷史，看起來像從 main 直接開發</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3</span>合併完成後的本地操作</h3>
+      <pre><code>git checkout main
+git pull                              # 抓回最新的 main
+git branch -d feature/my-work         # 刪本地分支
+git push origin --delete feature/my-work # 刪遠端分支</code></pre>
+    </div>
+  </section>
+
+  <!-- ========== 總結 ========== -->
+  <section class="key-points" id="summary">
+    <h2>🎯 整個流程的意義</h2>
+
+    <p style="margin-bottom: 15px;">這個流程看起來繁瑣，但解決了三大問題：</p>
+
+    <ul>
+      <li><strong>🛡️ 保護主線</strong>：main 永遠是穩定版本，不會被半成品污染</li>
+      <li><strong>👥 多人協作</strong>：每個人在自己的分支做，最後由 PR 整合</li>
+      <li><strong>🔍 程式碼品質</strong>：透過 PR 讓別人 review，降低 bug 機率</li>
+    </ul>
+
+    <p style="margin-top: 20px;"><strong>一句話濃縮：</strong></p>
+    <p style="font-size: 1.1em; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 10px;">
+      Fork 複製 → Clone 下來 → 開分支開發 → Commit 存檔 → Push 上傳 → 發 PR 請求合併 → Merge 進主線。
+      整個過程中 main 不會被污染，所有改動都有跡可循。
+    </p>
+  </section>
+
+</div>
+</body>
+</html>
