@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>本次練習流程紀錄 - Git 完整協作</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    line-height: 1.8;
+    padding: 30px 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 2.3em;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    margin-bottom: 30px;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+    margin: 30px 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #60a5fa, #a78bfa, #f472b6, #10b981);
+  }
+  .event {
+    position: relative;
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    border-left: 4px solid #60a5fa;
+  }
+  .event::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 22px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #60a5fa;
+    border: 3px solid #0f172a;
+  }
+  .event h3 {
+    color: #93c5fd;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .event-number {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    color: #0f172a;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.85em;
+  }
+  pre {
+    background: #020617;
+    padding: 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
+    border: 1px solid #1e293b;
+  }
+  pre code {
+    color: #e2e8f0;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.88em;
+  }
+  code {
+    background: #020617;
+    color: #f472b6;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: "Consolas", monospace;
+    font-size: 0.9em;
+  }
+  .why {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+    border-left: 4px solid #a78bfa;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+  }
+  .why strong { color: #c4b5fd; }
+
+  .summary {
+    background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 30px;
+  }
+  .summary h2 { color: white; margin-bottom: 15px; }
+  .summary ul { padding-left: 25px; }
+  .summary li { margin-bottom: 10px; }
+
+  .highlight-box {
+    background: rgba(245, 158, 11, 0.15);
+    border-left: 4px solid #f59e0b;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+  }
+  .highlight-box strong { color: #fcd34d; }
+
+  svg { display: block; margin: 20px auto; max-width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>📋 本次練習完整流程紀錄</h1>
+  <p class="subtitle">Fork → Branch → Push → PR → Rebase → Merge 的真實操作經驗</p>
+
+  <!-- 整體流程圖 -->
+  <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 16px; padding: 25px; margin-bottom: 25px;">
+    <h2 style="color: #f1f5f9; margin-bottom: 15px;">整體流程圖</h2>
+    <svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="ar1" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#60a5fa"/>
+        </marker>
+        <marker id="ar2" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/>
+        </marker>
+        <marker id="ar3" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#f472b6"/>
+        </marker>
+        <marker id="ar4" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#10b981"/>
+        </marker>
+      </defs>
+
+      <!-- 上游 repo -->
+      <rect x="30" y="160" width="140" height="60" rx="8" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="100" y="185" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="12">se-111410545</text>
+      <text x="100" y="203" text-anchor="middle" fill="#94a3b8" font-size="10">upstream</text>
+
+      <!-- Fork 箭頭 -->
+      <line x1="180" y1="190" x2="260" y2="190" stroke="#a78bfa" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="220" y="182" text-anchor="middle" fill="#a78bfa" font-size="11">Fork</text>
+
+      <!-- Fork repo -->
+      <rect x="260" y="160" width="140" height="60" rx="8" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+      <text x="330" y="185" text-anchor="middle" fill="#a78bfa" font-weight="bold" font-size="12">NaroFeng</text>
+      <text x="330" y="203" text-anchor="middle" fill="#94a3b8" font-size="10">origin / fork</text>
+
+      <!-- Clone 箭頭 -->
+      <line x1="410" y1="190" x2="490" y2="190" stroke="#60a5fa" stroke-width="2" marker-end="url(#ar1)"/>
+      <text x="450" y="182" text-anchor="middle" fill="#60a5fa" font-size="11">Clone</text>
+
+      <!-- 本地 fork -->
+      <rect x="490" y="160" width="140" height="60" rx="8" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+      <text x="560" y="185" text-anchor="middle" fill="#60a5fa" font-weight="bold" font-size="12">my-fork-local</text>
+      <text x="560" y="203" text-anchor="middle" fill="#94a3b8" font-size="10">本地</text>
+
+      <!-- Push 箭頭 -->
+      <line x1="560" y1="220" x2="330" y2="220" stroke="#a78bfa" stroke-width="2" marker-end="url(#ar2)" stroke-dasharray="4,3"/>
+      <text x="445" y="238" text-anchor="middle" fill="#a78bfa" font-size="11">Push</text>
+
+      <!-- PR 箭頭 -->
+      <path d="M 330,220 Q 230,290 100,290 Q 50,290 50,230" fill="none" stroke="#f472b6" stroke-width="2" marker-end="url(#ar3)" stroke-dasharray="4,3"/>
+      <text x="180" y="305" text-anchor="middle" fill="#f472b6" font-size="11">PR (合併前)</text>
+
+      <!-- Rebase -->
+      <path d="M 560,160 Q 700,80 480,50" fill="none" stroke="#f59e0b" stroke-width="2" marker-end="url(#ar1)" stroke-dasharray="4,3"/>
+      <text x="640" y="68" text-anchor="middle" fill="#f59e0b" font-size="11">Rebase upstream</text>
+
+      <!-- Merge -->
+      <path d="M 330,160 Q 230,90 130,90 Q 70,90 70,150" fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#ar4)" stroke-dasharray="4,3"/>
+      <text x="180" y="78" text-anchor="middle" fill="#10b981" font-size="11">Merge (合併完成)</text>
+
+      <!-- 流程順序標示 -->
+      <text x="450" y="350" text-anchor="middle" fill="#64748b" font-size="11">① Fork → ② Clone → ③ Branch → ④ Commit → ⑤ Push → ⑥ PR → ⑦ Rebase → ⑧ Merge</text>
+    </svg>
+  </div>
+
+  <!-- 時間軸 -->
+  <div class="timeline">
+
+    <div class="event">
+      <h3><span class="event-number">①</span>Fork 老師的 repo</h3>
+      <p>在 <code>se-111410545/git-examples</code> 頁面按 Fork，複製一份到 <code>NaroFeng/git-examples</code>。</p>
+      <div class="why">
+        <strong>💡 為什麼？</strong><br>
+        取得 repo 的完整 push 權限，否則你只能唯讀。
+      </div>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">②</span>Clone 自己的 fork</h3>
+      <pre><code>git clone git@github.com:NaroFeng/git-examples.git my-fork-examples
+cd my-fork-examples
+git remote add upstream git@github.com:se-111410545/git-examples.git
+git remote -v</code></pre>
+      <div class="why">
+        <strong>💡 為什麼要 clone fork 而不是老師的？</strong><br>
+        Clone 哪個代表你用哪個身份操作。Clone fork 才能 push。
+      </div>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">③</span>從 upstream 開新分支（關鍵！）</h3>
+      <pre><code>git fetch upstream
+git checkout -b feat/fork-tutorial upstream/main</code></pre>
+      <div class="highlight-box">
+        <strong>⚠️ 注意：</strong>從 <code>upstream/main</code> 開分支，<strong>不要</strong>從自己 fork 的 <code>main</code> 開。
+        否則 PR 會夾帶你 fork main 上多餘的 commit（像 <code>myfork.md</code> 那種個人紀錄）。
+      </div>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">④</span>新增檔案並 commit</h3>
+      <pre><code>git add forkTutorial.html forkExercise.md
+git commit -m "Add forkTutorial.html and forkExercise.md - Fork 練習"</code></pre>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">⑤</span>Push 到自己的 fork</h3>
+      <pre><code>git push -u origin feat/fork-tutorial</code></pre>
+      <p><code>-u</code> 設定上游追蹤，之後只需 <code>git push</code>。</p>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">⑥</span>到 GitHub 發 Pull Request</h3>
+      <p>到 <code>https://github.com/NaroFeng/git-examples</code> → 按 <strong>Compare & pull request</strong>。</p>
+      <ul style="padding-left: 20px; margin-top: 8px;">
+        <li><strong>base repository</strong>: <code>se-111410545/git-examples</code> / <code>main</code></li>
+        <li><strong>compare branch</strong>: <code>feat/fork-tutorial</code></li>
+      </ul>
+      <div class="highlight-box">
+        <strong>⚠️ 這個時候 GitHub 可能會顯示「out-of-date」</strong>，因為 fork 缺少老師那邊後來加的檔案。
+        別慌張，繼續下一步。
+      </div>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">⑦</span>Rebase 到最新 upstream（解決 out-of-date）</h3>
+      <pre><code>git fetch upstream
+git checkout feat/fork-tutorial
+git rebase upstream/main
+git push -f origin feat/fork-tutorial</code></pre>
+      <div class="why">
+        <strong>💡 Rebase 在做什麼？</strong><br>
+        把你的 commit「重新接到」最新的 upstream main 上。
+        結果：feat 分支的歷史變乾淨，PR 也不會 out-of-date。
+      </div>
+      <div class="why">
+        <strong>💡 為什麼 <code>-f</code>（force push）？</strong><br>
+        Rebase 後 commit 的 hash 會改變，遠端舊的 commit 已經不存在，
+        必須強制覆蓋才能推上去。<strong>只在自己的分支上用，別人的分支不能用 -f。</strong>
+      </div>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">⑧</span>Merge PR</h3>
+      <p>回到 GitHub PR 頁面，按 <strong>Merge pull request</strong> 確認合併。</p>
+      <p>合併後 se-111410545 的 main 會多出 <code>forkTutorial.html</code> 和 <code>forkExercise.md</code>。</p>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">⑨</span>Pull 回本地（另一個資料夾）</h3>
+      <pre><code>cd ../git-examples
+git pull</code></pre>
+      <div class="why">
+        <strong>💡 為什麼要 pull？</strong><br>
+        PR merge 後老師的 repo 已經有 forkTutorial.html 等新檔案。
+        Pull 下來讓本地也跟上最新狀態，這樣 index.html 才能正確索引到所有檔案。
+      </div>
+    </div>
+
+    <div class="event">
+      <h3><span class="event-number">⑩</span>更新 index.html 並 push</h3>
+      <pre><code>git add index.html
+git commit -m "Add index.html - Git 教學索引頁"
+git push origin main</code></pre>
+      <div class="why">
+        <strong>💡 為什麼 index.html 要包含 fork 教學連結？</strong><br>
+        因為 PR merge 後，那些檔案已經存在了。
+        index.html 作為入口頁，應該包含所有檔案的連結，方便瀏覽。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 關鍵觀念 -->
+  <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 16px; padding: 25px; margin-bottom: 25px;">
+    <h2 style="color: #f1f5f9; margin-bottom: 20px;">🔑 關鍵觀念整理</h2>
+
+    <div class="event">
+      <h3>origin vs upstream</h3>
+      <p><code>origin</code> = 你自己的 fork（推送的地方）</p>
+      <p><code>upstream</code> = 原作者的 repo（同步參考）</p>
+    </div>
+
+    <div class="event">
+      <h3>為什麼 PR 會 out-of-date？</h3>
+      <p>Fork 是「快照」，原作者更新後 fork 不會自動同步。</p>
+      <p>解法：<code>git fetch upstream</code> + <code>git rebase upstream/main</code></p>
+    </div>
+
+    <div class="event">
+      <h3>Rebase vs Merge 差別</h3>
+      <p><strong>Merge</strong>：保留分支歷史，產生 merge commit（會出現分岔再合流的圖形）</p>
+      <p><strong>Rebase</strong>：線性乾淨，看起來像直接從 main 開發（適合 PR 前整理）</p>
+    </div>
+
+    <div class="event">
+      <h3>Force Push 的危險與安全</h3>
+      <p><strong>危險</strong>：覆蓋遠端歷史，可能把別人的 commit 刪掉</p>
+      <p><strong>安全</strong>：只對自己 fork 的分支用，絕不在 main 或協作分支用</p>
+    </div>
+
+  </div>
+
+  <!-- 總結 -->
+  <div class="summary">
+    <h2>🎯 一句話總結這次練習</h2>
+    <ul>
+      <li><strong>Fork</strong> 拿到 push 權限</li>
+      <li><strong>從 upstream 開分支</strong>，確保 PR 乾淨</li>
+      <li><strong>Push + 發 PR</strong>，請求合併</li>
+      <li><strong>Rebase</strong> 解決 out-of-date，把 fork 接到最新 upstream</li>
+      <li><strong>Merge + Pull</strong>，把新檔案拉回來，更新 index</li>
+      <li><strong>Push</strong>，最終所有檔案都在老師的 repo</li>
+    </ul>
+    <p style="margin-top: 20px; font-size: 1.1em; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+      這套流程完整模擬了<strong>真實開源貢獻</strong>的每一步：
+      <code>Fork → Branch → Commit → Push → PR → Rebase → Merge → Pull → Push</code>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
